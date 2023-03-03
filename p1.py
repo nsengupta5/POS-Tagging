@@ -6,39 +6,33 @@ from io import open
 LANG = 'en'
 TREEBANK = {}
 
-def get_tag_counts(tags):
-	return FreqDist(tags)
+def get_prob_matrix(mappings, smoothed):
+	probs = {}
+	for mapping in mappings:
+		first_elem, second_elem = mapping
+		probabilty = smoothed[first_elem].prob(second_elem)
+		probs[mapping] = probabilty
+	return probs
 
-def get_tag_transition_counts(tags):
-	return FreqDist(ngrams(tags, 2))
-
-def get_tag_emission_counts(emissions):
-	return FreqDist(emissions)
+def get_smoothed(tags, mappings):
+	smoothed = {}
+	for tag in set(tags):
+		first_elem = [x for (t, x) in mappings if t == tag]
+		smoothed[tag] = WittenBellProbDist(FreqDist(first_elem), bins=1e5)
+	return smoothed
 
 def get_transmission_prob_matrix(train_sents):
 	tags = [token['upos'] for sent in train_sents for token in sent]
-	tag_counts = get_tag_counts(tags)
-	tag_transition_counts = get_tag_transition_counts(tags)
-	transition_probs = {}
-
-	for transition, count in tag_transition_counts.items():
-		prev_tag, _ = transition
-		probabilty = count / tag_counts[prev_tag]
-		transition_probs[transition] = probabilty
-
+	transitions = ngrams(tags, 2)
+	smoothed = get_smoothed(tags, transitions)
+	transition_probs = get_prob_matrix(transitions, smoothed)
 	return transition_probs
 
 def get_emission_prob_matrix(train_sents):
-	emissions = [(token['form'], token['upos']) for sent in train_sents for token in sent]
-	tag_counts = get_tag_counts([tag for _, tag in emissions])
-	tag_emission_counts = get_tag_emission_counts(emissions)
-	emission_probs = {}
-
-	for emission, count in tag_emission_counts.items():
-		_, tag = emission
-		probabilty = count / tag_counts[tag]
-		emission_probs[emission] = probabilty
-
+	emissions = [(token['upos'], token['form']) for sent in train_sents for token in sent]
+	tags = [tag for tag, _ in emissions]
+	smoothed = get_smoothed(tags, emissions)
+	emission_probs = get_prob_matrix(emissions, smoothed)
 	return emission_probs
 
 def viterbi_algorithm():
@@ -66,7 +60,7 @@ def main():
 
 	train_sents = conllu_corpus(train_corpus(LANG))
 	test_sents = conllu_corpus(test_corpus(LANG))
-	get_emission_prob_matrix(train_sents)
+	get_transmission_prob_matrix(train_sents)
 
 if __name__ == '__main__':
 	main()

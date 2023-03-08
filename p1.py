@@ -9,6 +9,18 @@ TREEBANK = {}
 START = '<s>'
 END = '</s>'
 
+'''
+Returns a sequence of the most probable tags for a given sentence using the Viterbi algorithm
+
+args:
+	tags: a list of tags
+	emission_probs: a dictionary of dictionaries of smoothed emission probabilities
+	transition_probs: a dictionary of dictionaries of smoothed transition probabilities
+	test_sentence: a list of tokens from the test corpus
+
+returns:
+	A sequence of the most probable tags for the given sentence
+'''
 def viterbi_algorithm(tags, emission_probs, transition_probs, test_sentence):
 	# Initialize the Viterbi matrix and backpointers
 	V = [{}]
@@ -45,6 +57,18 @@ def viterbi_algorithm(tags, emission_probs, transition_probs, test_sentence):
 	# Return the most probable sequence of tags
 	return backpointers[end_tag]
 
+'''
+Gets the accuracy of the Viterbi algorithm for the test corpus
+
+args:
+	tags: a list of tags
+	emission_matrix: a dictionary of dictionaries of smoothed emission probabilities
+	transition_matrix: a dictionary of dictionaries of smoothed transition probabilities
+	test_sents: a list of sentences from the test corpus
+
+returns:
+	The accuracy of the Viterbi algorithm for the test corpus
+'''
 def get_accuracy(tags, emission_matrix, transition_matrix, test_sents):
 	correct = 0
 	total = 0
@@ -58,9 +82,27 @@ def get_accuracy(tags, emission_matrix, transition_matrix, test_sents):
 			total += 1
 	return correct / total
 
+'''
+Gets the path to the training corpus for the given language
+
+args:
+	lang: the language of the corpus
+
+returns:
+	The path to the training corpus
+'''
 def train_corpus(lang): 
 	return TREEBANK[lang] + '-ud-train.conllu'
 
+'''
+Gets the path to the test corpus for the given language
+
+args:
+	lang: the language of the corpus
+
+returns:
+	The path to the test corpus
+'''
 def test_corpus(lang):
 	return TREEBANK[lang] + '-ud-test.conllu'
 
@@ -68,6 +110,15 @@ def test_corpus(lang):
 def prune_sentence(sent):
 	return [token for token in sent if type(token['id']) is int]
 
+'''
+Gets the sentences from the corpus
+
+args:
+	path: the path to the corpus
+
+returns:
+	A list of sentences from the corpus
+'''
 def conllu_corpus(path):
 	data_file = open(path, 'r', encoding='utf-8')
 	sents = list(parse_incr(data_file))
@@ -92,7 +143,7 @@ def main():
 
 	# Get the transition and emission matrices
 	transition_matrix = get_transmission_prob_matrix(tags , train_sents)
-	emission_matrix = get_emission_prob_matrix(train_sents, tags)
+	emission_matrix = get_emission_prob_matrix(tags, train_sents)
 
 	# Get the accuracy of the model using the Viertbi algorithm
 	accuracy = get_accuracy(tags, emission_matrix, transition_matrix, test_sents)

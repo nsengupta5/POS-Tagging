@@ -1,4 +1,4 @@
-from nltk import FreqDist, WittenBellProbDist
+from nltk import FreqDist, WittenBellProbDist, bigrams
 
 START = '<s>'
 BINS = 1e5
@@ -13,10 +13,13 @@ returns:
 	smoothed: a dictionary of dictionaries of smoothed probabilities
 '''
 def get_smoothed(mappings):
+	# Initialize the smoothed matrix
 	smoothed = {}
-	for mapping in mappings:
+	tags = set([t for (t,_) in mappings])
+	for tag in tags:
+		words = [w for (t,w) in mappings if t == tag]
 		# Smooth the mapping using Witten-Bell smoothing
-		smoothed[mapping] = WittenBellProbDist(FreqDist(mappings[mapping]), bins=BINS)
+		smoothed[tag] = WittenBellProbDist(FreqDist(words), bins=BINS)
 	return smoothed
 
 '''
@@ -29,23 +32,22 @@ args:
 returns:
 	A smoothed transition probability matrix
 '''
-def get_transmission_prob_matrix(tags, train_sents):
+def get_transmission_prob_matrix(train_sents):
 	# Initialize the transition matrix
-	transitions = {t: [] for t in tags}
-	transitions[START] = []
+	transitions = []
 
 	for sent in train_sents:
 		# Add the first word of each sentence to the START tag
-		transitions[START].append(sent[0]['upos'])
+		transitions.append((START, sent[0]['upos']))
 
 		# Add the transition from the previous word to the current word
-		for index, token in enumerate(sent[1:]):
-			transitions[sent[index - 1]['upos']].append(token['upos'])
+		for token in bigrams(sent):
+			transitions.append((token[0]['upos'], token[1]['upos']))
 
 		# Add the transition from the last word to the END tag
-		transitions[sent[-1]['upos']].append(END)
+		transitions.append((sent[len(sent) - 1]['upos'], END))
 
-	# Smooth the transition matrix
+	# Return the smoothed transition matrix
 	return get_smoothed(transitions)
 
 '''
@@ -58,14 +60,9 @@ args:
 returns:
 	A smoothed emission probability matrix
 '''
-def get_emission_prob_matrix(tags, train_sents):
+def get_emission_prob_matrix(train_sents):
 	# Initialize the emission matrix
-	emissions = {t: [] for t in tags}
+    emissions = [(token['upos'], token['form']) for sentence in train_sents for token in sentence]
 
-	# Add the word to the tag
-	for sent in train_sents:
-		for token in sent:
-			emissions[token['upos']].append(token['form'])
-
-	# Smooth the emission matrix
-	return get_smoothed(emissions)
+	# Return the smoothed emission matrix
+    return get_smoothed(emissions)

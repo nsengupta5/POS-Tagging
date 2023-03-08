@@ -142,8 +142,8 @@ def main():
 	tags = set([token['upos'] for sent in train_sents for token in sent])
 
 	# Get the transition and emission matrices
-	transition_matrix = get_transmission_prob_matrix(tags , train_sents)
-	emission_matrix = get_emission_prob_matrix(tags, train_sents)
+	transition_matrix = get_transmission_prob_matrix(train_sents)
+	emission_matrix = get_emission_prob_matrix(train_sents)
 
 	# Get the accuracy of the model using the Viertbi algorithm
 	accuracy = get_accuracy(tags, emission_matrix, transition_matrix, test_sents)

@@ -26,7 +26,6 @@ def get_smoothed(mappings):
 Gets the transition probability matrix
 
 args:
-	tags: a list of tags
 	train_sents: a list of sentences from the training corpus
 
 returns:
@@ -54,7 +53,6 @@ def get_transmission_prob_matrix(train_sents):
 Gets the emission probability matrix
 
 args: 
-	tags: a list of tags
 	trains_sents: a list of sentences from the training corpus
 
 returns:

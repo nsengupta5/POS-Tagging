@@ -194,7 +194,7 @@ def check_valid_lang(arg, run_all, lang):
 	if arg == 'all':
 		run_all = True
 	# Check if the language is valid
-	if arg in languages:
+	elif arg in languages:
 		lang = argv[1]
 	else:
 		throw_err()
@@ -229,6 +229,7 @@ def main():
 		case _:
 			throw_err()
 
+	# Run the experiment
 	if run_all:
 		run_experiment('en', use_unk)
 		run_experiment('fr', use_unk)

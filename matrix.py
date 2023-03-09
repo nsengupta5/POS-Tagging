@@ -1,8 +1,8 @@
 from nltk import FreqDist, WittenBellProbDist, bigrams
 
 START = '<s>'
-BINS = 1e5
 END = '</s>'
+BINS = 1e5
 
 '''
 Smooths a matrix using Witten-Bell smoothing

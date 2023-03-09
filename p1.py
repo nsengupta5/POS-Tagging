@@ -4,6 +4,7 @@ from unk import find_infrequent_words, replace_infrequent_words_train, replace_i
 from conllu import parse_incr
 from io import open
 from sys import argv
+import logging
 
 TREEBANK = {}
 
@@ -83,22 +84,25 @@ def run_experiment(lang, use_unk):
 	# Get the accuracy of the model using the Viertbi algorithm
 	accuracy = get_accuracy(tags, emission_matrix, transition_matrix, test_sents)
 
+	unk_str = ' (with <UNK> tags)' if use_unk else ''
 	# Print the accuracy
 	match lang:
 		case 'en':
-			print('English Accuracy: {:.2%}'.format(accuracy))
+			print('English Accuracy{}: {:.2%}'.format(unk_str,accuracy))
 		case 'fr':
-			print('French Accuracy: {:.2%}'.format(accuracy))
+			print('French Accuracy{}: {:.2%}'.format(unk_str,accuracy))
 		case 'uk':
-			print('Ukrainian Accuracy: {:.2%}'.format(accuracy))
+			print('Ukrainian Accuracy{}: {:.2%}'.format(unk_str,accuracy))
 		case _:
-			print('Accuracy: {:.2%}'.format(accuracy))
+			print('Accuracy{}: {:.2%}'.format(unk_str,accuracy))
 
 '''
 Throws an error if the arguments are invalid
 '''
 def throw_err():
-	print('ERROR: Invalid argument USAGE: python3 viterbi.py [en|fr|uk|all] [unk]')
+	fmt = '[%(levelname)s] %(message)s'
+	logging.basicConfig(format=fmt, level=logging.DEBUG)
+	logging.error('Invalid argument USAGE: python3 viterbi.py [en|fr|uk|all] [unk]')
 	exit()
 
 '''

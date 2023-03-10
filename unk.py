@@ -1,4 +1,5 @@
 from nltk import FreqDist
+from suffix import *
 import unicodedata
 
 FREQ_THRESHOLD = 2
@@ -27,24 +28,14 @@ args:
 returns:
 	True if the word is capitalized and not the first word in the sentence, False otherwise
 '''
-def word_is_capitalized(sent, word):
-	return word[0].isupper() and sent[0]['form'] != word
-
-'''
-Check if a word is a Ukrainian upper case word and not the first word in the sentence
-
-args:
-	sent: the sentence the word is in
-	word: the word to check
-
-returns:
-	True if the word is a Ukrainian upper case word, False otherwise	
-'''
-def word_is_capitalized_ukr(sent, word):
-    for letter in word:
-        if letter.isalpha():
-            return unicodedata.name(letter).startswith('CYRILLIC CAPITAL') and sent[0]['form'] != word
-    return False
+def word_is_capitalized(sent, word, is_uk):
+	# Check if the language is Ukrainian
+	if is_uk:
+		for letter in word:
+			if letter.isalpha():
+				return unicodedata.name(letter).startswith('CYRILLIC CAPITAL') and sent[0]['form'] != word
+	else:
+		return word[0].isupper() and sent[0]['form'] != word
 
 '''
 Find the infrequent words in the corpus
@@ -79,96 +70,23 @@ args:
 returns:
 	The unknown word tag for the word
 '''
-def convert_word_to_unk_en(sent, word):
-	unk_tag = word
-	if word_ends_with(word, 'ing'):
-		unk_tag = 'UNK-ing'
-	elif word_is_capitalized(sent, word):
+def convert_word_to_unk(sent, word, suffixes, is_uk, catch_all):
+	# Replace the word with an general unknown word tag if catch_all is True
+	if catch_all:
+		unk_tag = 'UNK'
+	else:
+		unk_tag = word
+
+	# Replace the word with the capitalized unknown word tag if it is capitalized and not the first word in the sentence
+	if word_is_capitalized(sent, word, is_uk):
 		unk_tag = 'UNK-cap'
-	elif word_ends_with(word, 'ly'):
-		unk_tag = 'UNK-ly'
-	elif word_ends_with(word, 'ble'):
-		unk_tag = 'UNK-ble'
-	elif word_ends_with(word, 'fy'):
-		unk_tag = 'UNK-fy'
-	elif word_ends_with(word, 'ic'):
-		unk_tag = 'UNK-ic'
-	elif word_ends_with(word, 'ous'):
-		unk_tag = 'UNK-ous'
-	elif word_ends_with(word, 'ful'):
-		unk_tag = 'UNK-ful'
-	elif word_ends_with(word, 'ed'):
-		unk_tag = 'UNK-ed'
-	elif word_ends_with(word, 'tion'):
-		unk_tag = 'UNK-tion'
-	return unk_tag
+	else:
+		# Replace the word with the unknown word tag for the suffix if it has a known suffix
+		for suffix in suffixes:
+			if word_ends_with(word, suffix):
+				unk_tag = 'UNK-' + suffix
+				break
 
-'''
-Convert a word to an unknown word tag for French
-
-args:
-	sent: the sentence the word is in
-	word: the word to convert
-
-returns:
-	The unknown word tag for the word
-'''
-def convert_word_to_unk_fr(sent, word):
-	unk_tag = word
-	if word_is_capitalized(sent, word):
-		unk_tag = 'UNK-cap'
-	elif word_ends_with(word, 'ique'):
-		unk_tag = 'UNK-ique'
-	elif word_ends_with(word, 'iste'):
-		unk_tag = 'UNK-iste'
-	elif word_ends_with(word, 'elle'):
-		unk_tag = 'UNK-elle'
-	elif word_ends_with(word, 'eux'):
-		unk_tag = 'UNK-eux'
-	elif word_ends_with(word, 'er'):
-		unk_tag = 'UNK-er'
-	elif word_ends_with(word, 'eur'):
-		unk_tag = 'UNK-eur'
-	elif word_ends_with(word, 'ble'):
-		unk_tag = 'UNK-ble'
-	elif word_ends_with(word, 'ment'):
-		unk_tag = 'UNK-ment'
-	elif word_ends_with(word, 'tion'):
-		unk_tag = 'UNK-tion'
-	return unk_tag
-
-'''
-Convert a word to an unknown word tag for Ukrainian
-
-args:
-	sent: the sentence the word is in
-	word: the word to convert
-
-returns:
-	The unknown word tag for the word
-'''
-def convert_word_to_unk_uk(sent, word):
-	unk_tag = word
-	if word_is_capitalized_ukr(sent, word):
-		unk_tag = 'UNK-cap'
-	elif word_ends_with(word, 'іст'):
-		unk_tag = 'UNK-іст'
-	elif word_ends_with(word, 'ість'):
-		unk_tag = 'UNK-ість'
-	elif word_ends_with(word, 'ка'):
-		unk_tag = 'UNK-ка'
-	elif word_ends_with(word, 'ий'):
-		unk_tag = 'UNK-ий'
-	elif word_ends_with(word, 'ці'):
-		unk_tag = 'UNK-ці'
-	elif word_ends_with(word, 'ня'):
-		unk_tag = 'UNK-ня'
-	elif word_ends_with(word, 'овий'):
-		unk_tag = 'UNK-овий'
-	elif word_ends_with(word, 'ець'):
-		unk_tag = 'UNK-ець'
-	elif word_ends_with(word, 'ло'):
-		unk_tag = 'UNK-ло'
 	return unk_tag
 
 '''
@@ -181,7 +99,7 @@ args:
 returns:
 	the training set with infrequent words replaced with unknown word tags
 '''
-def replace_infrequent_words_train(train_sents, infrequent_words, lang):
+def replace_infrequent_words_train(train_sents, infrequent_words, lang, catch_all):
 	for sent in train_sents:
 		for token in sent:
 			word = token['form']
@@ -189,11 +107,11 @@ def replace_infrequent_words_train(train_sents, infrequent_words, lang):
 			if word in infrequent_words:
 				match lang:
 					case 'en':
-						token['form'] = convert_word_to_unk_en(sent, word)
+						token['form'] = convert_word_to_unk(sent, word, en_suffixes, False, catch_all)
 					case 'fr':
-						token['form'] = convert_word_to_unk_fr(sent, word)
+						token['form'] = convert_word_to_unk(sent, word, fr_suffixes, False, catch_all)
 					case 'uk':
-						token['form'] = convert_word_to_unk_uk(sent, word)
+						token['form'] = convert_word_to_unk(sent, word, uk_suffixes, True, catch_all)
 	return train_sents
 
 '''
@@ -207,7 +125,7 @@ args:
 returns:
 	the test set with infrequent words replaced with unknown word tags
 '''
-def replace_infrequent_words_test(test_sents, train_sents, infrequent_words, lang):
+def replace_infrequent_words_test(test_sents, train_sents, infrequent_words, lang, catch_all):
 	train_set_words = get_train_set_words(train_sents)
 	for sent in test_sents:
 		for token in sent:
@@ -216,11 +134,11 @@ def replace_infrequent_words_test(test_sents, train_sents, infrequent_words, lan
 			if word in infrequent_words or word not in train_set_words:
 				match lang:
 					case 'en':
-						token['form'] = convert_word_to_unk_en(sent, word)
+						token['form'] = convert_word_to_unk(sent, word, en_suffixes, False, catch_all)
 					case 'fr':
-						token['form'] = convert_word_to_unk_fr(sent, word)
+						token['form'] = convert_word_to_unk(sent, word, fr_suffixes, False, catch_all)
 					case 'uk':
-						token['form'] = convert_word_to_unk_uk(sent, word)
+						token['form'] = convert_word_to_unk(sent, word, uk_suffixes, True, catch_all)
 	return test_sents
 
 '''

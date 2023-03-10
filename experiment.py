@@ -1,5 +1,6 @@
 from p1 import find_accuracy, TREEBANK
-from suffix import *
+from unk import en_suffixes, fr_suffixes, uk_suffixes
+import matplotlib.pyplot as plt
 
 test_num = 1
 en_suffixes_bak = en_suffixes.copy()
@@ -30,50 +31,61 @@ def test_ing_and_cap_en(test_num):
 	print_test_title(f"TEST {test_num}: Testing 'ing' and cap for English")
 	sub = ['ing']
 	set_suffixes(en_suffixes, sub)
-	find_accuracy('en', True, False)
+	find_accuracy('en', True)
 	set_suffixes(en_suffixes, en_suffixes_bak)
 
-def test_all_tags_with_catch_all_en(test_num):
-	print_test_title(f"TEST {test_num}: Testing all tags with catch all for English")
+def test_all_tags_with_catch_all(test_num):
+	print_test_title(f"TEST {test_num}: Testing all tags with catch all")
 	find_accuracy('en', True, True)
+	find_accuracy('fr', True, True)
+	find_accuracy('uk', True, True)
 
-def test_catch_all_en(test_num):
-	print_test_title(f"TEST {test_num}: Testing only catch all for English")
+def test_catch_all(test_num):
+	print_test_title(f"TEST {test_num}: Testing only catch all")
 	set_suffixes(en_suffixes, [])
-	find_accuracy('en', True, True)
-	set_suffixes(en_suffixes, en_suffixes_bak)
-
-def test_all_tags_with_catch_all_fr(test_num):
-	print_test_title(f"TEST {test_num}: Testing all tags with catch all for French")
-	find_accuracy('fr', True, True)
-
-def test_catch_all_fr(test_num):
-	print_test_title(f"TEST {test_num}: Testing only catch all for French")
 	set_suffixes(fr_suffixes, [])
-	find_accuracy('fr', True, True)
-	set_suffixes(fr_suffixes, fr_suffixes_bak)
-
-def test_all_tags_with_catch_all_uk(test_num):
-	print_test_title(f"TEST {test_num}: Testing all tags with catch all for Ukrainian")
-	find_accuracy('uk', True, True)
-
-def test_catch_all_uk(test_num):
-	print_test_title(f"TEST {test_num}: Testing only catch all for Ukrainian")
 	set_suffixes(uk_suffixes, [])
+	find_accuracy('en', True, True)
+	find_accuracy('fr', True, True)
 	find_accuracy('uk', True, True)
+	set_suffixes(en_suffixes, en_suffixes_bak)
+	set_suffixes(fr_suffixes, fr_suffixes_bak)
 	set_suffixes(uk_suffixes, uk_suffixes_bak)
+
+def generate_suffix_graph():
+	print_test_title("Generating suffix efficiency graphs for each language")
+	en_raw_accuracy = find_accuracy('en', False)
+	fr_raw_accuracy = find_accuracy('fr', False)
+	uk_raw_accuracy = find_accuracy('uk', False)
+
+	suffix_mapping = {
+		'fr': ["French", fr_suffixes, fr_raw_accuracy, fr_suffixes_bak],
+		'en': ["English", en_suffixes, en_raw_accuracy, en_suffixes_bak],
+		'uk': ["Ukrainian", uk_suffixes, uk_raw_accuracy, uk_suffixes_bak]
+	}
+
+	for lang, [long_lang, suffixes, raw_accuracy, suffixes_bak] in suffix_mapping.items():
+		suffix_efficiency = []
+		for suffix in suffixes:
+			set_suffixes(suffixes, [suffix])
+			accuracy = find_accuracy(lang, True)
+			suffix_efficiency.append((suffix, accuracy - raw_accuracy))
+			set_suffixes(suffixes, suffixes_bak)
+		suffix_efficiency.sort(key=lambda x: x[1], reverse=True)
+		suffixes, efficiency = zip(*suffix_efficiency)
+		plt.bar(suffixes, efficiency)
+		plt.title(f"Suffix Efficiency for {long_lang}")
+		plt.xlabel("Suffix")
+		plt.ylabel("Accuracy Gain (%)")
+		plt.savefig(f"./plots/{lang}_suffix_efficiency.png")
+		plt.close()
 
 def main():
 	setup()
-	run_test(test_ing_and_cap_en)
-	run_test(test_catch_all_en)
-	run_test(test_all_tags_with_catch_all_en)
-
-	run_test(test_catch_all_fr)
-	run_test(test_all_tags_with_catch_all_fr)
-
-	run_test(test_catch_all_uk)
-	run_test(test_all_tags_with_catch_all_uk)
+	# run_test(test_ing_and_cap_en)
+	# run_test(test_catch_all)
+	# run_test(test_all_tags_with_catch_all)
+	generate_suffix_graph()
 
 if __name__ == "__main__":
 	main()

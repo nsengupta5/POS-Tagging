@@ -1,8 +1,10 @@
 from nltk import FreqDist
-from suffix import *
 import unicodedata
 
 FREQ_THRESHOLD = 2
+en_suffixes = ['ing', 'ly', 'ble', 'fy', 'ic', 'ous', 'ful', 'ed', 'tion']
+fr_suffixes = ['ique', 'iste', 'elle', 'eux', 'er', 'eur', 'ble', 'ment', 'tion']
+uk_suffixes = ['іст', 'ість', 'ка', 'ий', 'ці', 'ня', 'овий', 'ець', 'ло']
 
 '''
 Check if a word ends with a suffix

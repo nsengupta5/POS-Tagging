@@ -97,6 +97,8 @@ def find_accuracy(lang, use_unk, catch_all=False):
 		case _:
 			print('Accuracy{}: {:.2%}'.format(unk_str,accuracy))
 
+	return accuracy
+
 '''
 Throws an error if the arguments are invalid
 '''

@@ -1,7 +1,5 @@
 from math import log
-
-START = '<s>'
-END = '</s>'
+from matrix import START, END
 
 '''
 Returns a sequence of the most probable tags for a given sentence using the Viterbi algorithm

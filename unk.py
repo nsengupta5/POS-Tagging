@@ -31,7 +31,7 @@ returns:
 	True if the word is capitalized and not the first word in the sentence, False otherwise
 '''
 def word_is_capitalized(sent, word, is_uk):
-	# Check if the language is Ukrainian
+	# Check if the language is Ukrainian for special handling
 	if is_uk:
 		for letter in word:
 			if letter.isalpha():

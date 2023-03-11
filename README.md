@@ -3,6 +3,7 @@
 ## Dependencies
 - `nltk`
 - `conllu`
+- `matplotlib` (for graph generation)
 
 ## Instructions
 

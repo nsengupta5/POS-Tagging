@@ -1,4 +1,4 @@
-# CS5012-P1: POS Tagging
+POS Tagging
 
 ## Dependencies
 - `nltk`

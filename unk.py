@@ -2,7 +2,7 @@ from nltk import FreqDist
 import unicodedata
 
 FREQ_THRESHOLD = 2
-en_suffixes = ['ing', 'ly', 'ble', 'fy', 'ic', 'ous', 'ful', 'ed', 'tion']
+en_suffixes = ['ing', 'ly', 'ble', 'en', 'ic', 'ance', 'ful', 'ed', 'tion']
 fr_suffixes = ['ique', 'iste', 'elle', 'eux', 'er', 'eur', 'ble', 'ment', 'tion']
 uk_suffixes = ['іст', 'ість', 'ка', 'ий', 'ці', 'ня', 'овий', 'ець', 'ло']
 
@@ -72,7 +72,7 @@ args:
 returns:
 	The unknown word tag for the word
 '''
-def convert_word_to_unk(sent, word, suffixes, is_uk, catch_all):
+def convert_word_to_unk(sent, word, suffixes, is_uk, catch_all, use_cap):
 	# Replace the word with an general unknown word tag if catch_all is True
 	if catch_all:
 		unk_tag = 'UNK'
@@ -80,7 +80,7 @@ def convert_word_to_unk(sent, word, suffixes, is_uk, catch_all):
 		unk_tag = word
 
 	# Replace the word with the capitalized unknown word tag if it is capitalized and not the first word in the sentence
-	if word_is_capitalized(sent, word, is_uk):
+	if use_cap and word_is_capitalized(sent, word, is_uk):
 		unk_tag = 'UNK-cap'
 	else:
 		# Replace the word with the unknown word tag for the suffix if it has a known suffix
@@ -101,7 +101,7 @@ args:
 returns:
 	the training set with infrequent words replaced with unknown word tags
 '''
-def replace_infrequent_words_train(train_sents, infrequent_words, lang, catch_all):
+def replace_infrequent_words_train(train_sents, infrequent_words, lang, catch_all, use_cap):
 	for sent in train_sents:
 		for token in sent:
 			word = token['form']
@@ -109,11 +109,11 @@ def replace_infrequent_words_train(train_sents, infrequent_words, lang, catch_al
 			if word in infrequent_words:
 				match lang:
 					case 'en':
-						token['form'] = convert_word_to_unk(sent, word, en_suffixes, False, catch_all)
+						token['form'] = convert_word_to_unk(sent, word, en_suffixes, False, catch_all, use_cap)
 					case 'fr':
-						token['form'] = convert_word_to_unk(sent, word, fr_suffixes, False, catch_all)
+						token['form'] = convert_word_to_unk(sent, word, fr_suffixes, False, catch_all, use_cap)
 					case 'uk':
-						token['form'] = convert_word_to_unk(sent, word, uk_suffixes, True, catch_all)
+						token['form'] = convert_word_to_unk(sent, word, uk_suffixes, True, catch_all, use_cap)
 	return train_sents
 
 '''
@@ -127,7 +127,7 @@ args:
 returns:
 	the test set with infrequent words replaced with unknown word tags
 '''
-def replace_infrequent_words_test(test_sents, train_sents, infrequent_words, lang, catch_all):
+def replace_infrequent_words_test(test_sents, train_sents, infrequent_words, lang, catch_all, use_cap):
 	train_set_words = get_train_set_words(train_sents)
 	for sent in test_sents:
 		for token in sent:
@@ -136,11 +136,11 @@ def replace_infrequent_words_test(test_sents, train_sents, infrequent_words, lan
 			if word in infrequent_words or word not in train_set_words:
 				match lang:
 					case 'en':
-						token['form'] = convert_word_to_unk(sent, word, en_suffixes, False, catch_all)
+						token['form'] = convert_word_to_unk(sent, word, en_suffixes, False, catch_all, use_cap)
 					case 'fr':
-						token['form'] = convert_word_to_unk(sent, word, fr_suffixes, False, catch_all)
+						token['form'] = convert_word_to_unk(sent, word, fr_suffixes, False, catch_all, use_cap)
 					case 'uk':
-						token['form'] = convert_word_to_unk(sent, word, uk_suffixes, True, catch_all)
+						token['form'] = convert_word_to_unk(sent, word, uk_suffixes, True, catch_all, use_cap)
 	return test_sents
 
 '''

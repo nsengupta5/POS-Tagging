@@ -1,4 +1,6 @@
-# CS5012-P1: POS Tagging
+# POS Tagging
+
+This project implements a Hidden Markov Model (HMM) for Part-of-Speech (POS) tagging. The model is trained on the English, French, and Ukrainian Universal Dependencies corpuses. It utilizes the Viterbi algorithm to find the most likely sequence of POS tags for a given sentence. It also intruduces complex preprocessing techniques that use observations of an unknown tag to improve the accuracy of the model.
 
 ## Dependencies
 - `nltk`

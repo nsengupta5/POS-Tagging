@@ -65,18 +65,17 @@ args:
 	lang: the language of the corpus
 	use_unk: whether or not to use <unk> for infrequent words
 '''
-def find_accuracy(lang, use_unk, catch_all=False):
+def find_accuracy(lang, use_unk, catch_all=False, use_cap=True):
 	train_sents = conllu_corpus(train_corpus(lang))
 	test_sents = conllu_corpus(test_corpus(lang))
 	tags = set([token['upos'] for sent in train_sents for token in sent])
-
 
 	if use_unk:
 		# Replace infrequent words with <unk>
 		infrequent_words = find_infrequent_words(train_sents)
 
-		train_sents = replace_infrequent_words_train(train_sents, infrequent_words, lang, catch_all)
-		test_sents = replace_infrequent_words_test(test_sents, train_sents, infrequent_words, lang, catch_all)
+		train_sents = replace_infrequent_words_train(train_sents, infrequent_words, lang, catch_all, use_cap)
+		test_sents = replace_infrequent_words_test(test_sents, train_sents, infrequent_words, lang, catch_all, use_cap)
 
 	# Get the transition and emission matrices
 	transition_matrix = get_transmission_prob_matrix(train_sents)

@@ -64,6 +64,23 @@ def test_ing_and_cap_en(test_num):
 	set_suffixes(en_suffixes, en_suffixes_bak)
 
 '''
+Tests the accuracy of capitalization of proper nouns for all languages
+'''
+def test_cap(test_num):
+	print_test_title(f"TEST {test_num}: Testing capitalization of proper nouns")
+	# No suffixes
+	set_suffixes(en_suffixes, [])
+	set_suffixes(fr_suffixes, [])
+	set_suffixes(uk_suffixes, [])
+	find_accuracy('en', True)
+	find_accuracy('fr', True)
+	find_accuracy('uk', True)
+	# Reset suffixes
+	set_suffixes(en_suffixes, en_suffixes_bak)
+	set_suffixes(fr_suffixes, fr_suffixes_bak)
+	set_suffixes(uk_suffixes, uk_suffixes_bak)
+
+'''
 Tests the accuracy with all suffixes, capitalization, and catch all for all languages
 
 args:
@@ -84,9 +101,9 @@ def test_catch_all(test_num):
 	set_suffixes(en_suffixes, [])
 	set_suffixes(fr_suffixes, [])
 	set_suffixes(uk_suffixes, [])
-	find_accuracy('en', True, True)
-	find_accuracy('fr', True, True)
-	find_accuracy('uk', True, True)
+	find_accuracy('en', True, True, False)
+	find_accuracy('fr', True, True, False)
+	find_accuracy('uk', True, True, False)
 	# Reset suffixes
 	set_suffixes(en_suffixes, en_suffixes_bak)
 	set_suffixes(fr_suffixes, fr_suffixes_bak)
@@ -132,6 +149,7 @@ def generate_suffix_graph():
 
 def main():
 	setup()
+	run_test(test_cap)
 	run_test(test_ing_and_cap_en)
 	run_test(test_catch_all)
 	run_test(test_all_tags_with_catch_all)
